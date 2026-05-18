@@ -29,11 +29,18 @@ object GraphRenderer {
         isDark: Boolean,
         windowLabel: String? = null,
         maxLabel: String = "MAX",
+        reuse: Bitmap? = null,
     ): Bitmap {
         val textColor = if (isDark) Color.WHITE else Color.BLACK
         val w = widthPx.coerceAtLeast(1)
         val h = heightPx.coerceAtLeast(1)
-        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        // Reuse a caller-supplied bitmap when its dimensions still match, instead of
+        // allocating a fresh ARGB_8888 bitmap every frame (memory pressure, #5).
+        val bmp = if (reuse != null && !reuse.isRecycled && reuse.width == w && reuse.height == h) {
+            reuse.also { it.eraseColor(Color.TRANSPARENT) }
+        } else {
+            Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        }
         val canvas = Canvas(bmp)
 
         val padPx = h * 0.05f

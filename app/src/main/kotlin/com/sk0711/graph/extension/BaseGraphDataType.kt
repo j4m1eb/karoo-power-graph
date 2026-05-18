@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.widget.RemoteViews
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.extension.DataTypeImpl
@@ -50,23 +51,51 @@ abstract class BaseGraphDataType(
     private val maxFlow = MutableStateFlow(0)
     private var cachedTogglePendingIntent: PendingIntent? = null
 
+    // Double-buffered bitmap pool for live rendering: alternating two cached
+    // bitmaps avoids an ARGB_8888 allocation every frame (memory pressure on
+    // long rides, #5) while leaving the just-sent RemoteViews bitmap untouched
+    // for a full render cycle.
+    private val bitmapPool = arrayOfNulls<Bitmap>(2)
+    private var bitmapToggle = 0
+
+    // Total ride-pause time folded out of the curve's time axis. Sample timestamps
+    // and the render "now" are wall-clock minus this offset, so a pause is removed
+    // from the axis entirely and the curve continues seamlessly on resume.
+    @Volatile
+    private var pauseOffsetMs = 0L
+
     fun startCollecting(scope: CoroutineScope) {
         if (kind == GraphRenderer.Kind.POWER) smoother = PowerSmoother()
 
         scope.launch {
+            var inPause = false
+            var pauseStartWallMs = 0L
             combine(
                 karooSystem.streamDataFlow(valueDataType),
                 karooSystem.streamDataFlow(zoneDataType),
                 karooSystem.consumerFlow<RideState>().onStart { emit(RideState.Recording) },
             ) { v, z, r -> Triple(v, z, r) }.collect { (valueState, zoneState, rideState) ->
-                if (rideState is RideState.Paused) return@collect
+                if (rideState is RideState.Paused) {
+                    if (!inPause) {
+                        inPause = true
+                        pauseStartWallMs = System.currentTimeMillis()
+                    }
+                    return@collect
+                }
+                if (inPause) {
+                    // Resumed: fold this pause's duration into the offset so the
+                    // moving-time axis skips it — the curve continues with no gap.
+                    pauseOffsetMs += System.currentTimeMillis() - pauseStartWallMs
+                    inPause = false
+                    smoother?.clear()
+                }
                 val raw = (valueState as? StreamState.Streaming)?.dataPoint?.singleValue?.toFloat()
                     ?: return@collect
                 val zone = (zoneState as? StreamState.Streaming)?.dataPoint?.singleValue?.toInt() ?: 0
-                val now = System.currentTimeMillis()
-                val smoothed = smoother?.add(now, raw) ?: raw
-                buffer.add(Sample(now, smoothed, zone))
-                sampleSignal.value = now
+                val movingNow = System.currentTimeMillis() - pauseOffsetMs
+                val smoothed = smoother?.add(movingNow, raw) ?: raw
+                buffer.add(Sample(movingNow, smoothed, zone))
+                sampleSignal.value = movingNow
             }
         }
 
@@ -109,7 +138,7 @@ abstract class BaseGraphDataType(
                 maxFlow,
             ) { _, window, avg, max -> Stats(window, avg, max) }
                 .collect { stats ->
-                    val now = System.currentTimeMillis()
+                    val now = System.currentTimeMillis() - pauseOffsetMs
                     emitter.updateView(
                         buildRemoteViews(context, config, buffer.snapshot(), stats.window, stats.avg, stats.max, now),
                     )
@@ -143,6 +172,13 @@ abstract class BaseGraphDataType(
         val (w, h) = config.viewSize
         val isDark = (context.resources.configuration.uiMode
             and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        // Pool bitmaps for the live field only; the one-shot preview is not pooled.
+        val reuse: Bitmap? = if (config.preview) {
+            null
+        } else {
+            bitmapToggle = bitmapToggle xor 1
+            bitmapPool[bitmapToggle]
+        }
         val bitmap = GraphRenderer.render(
             samples = samples,
             avg = avg,
@@ -155,7 +191,11 @@ abstract class BaseGraphDataType(
             isDark = isDark,
             windowLabel = window.label,
             maxLabel = maxLabel,
+            reuse = reuse,
         )
+        if (!config.preview) {
+            bitmapPool[bitmapToggle] = bitmap
+        }
         val rv = RemoteViews(context.packageName, R.layout.field_graph)
         rv.setImageViewBitmap(R.id.graph, bitmap)
         if (!config.preview) {

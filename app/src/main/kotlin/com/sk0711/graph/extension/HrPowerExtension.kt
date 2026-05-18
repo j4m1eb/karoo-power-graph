@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class HrPowerExtension : KarooExtension(EXTENSION_ID, "0.1.5") {
+class HrPowerExtension : KarooExtension(EXTENSION_ID, "0.1.6") {
 
     private lateinit var karooSystem: KarooSystemService
     private val collectScope = CoroutineScope(Dispatchers.IO + SupervisorJob())

@@ -15,4 +15,7 @@ class PowerSmoother(private val windowSeconds: Int = 3) {
         for ((_, v) in samples) sum += v
         return sum / samples.size
     }
+
+    /** Drops all buffered samples — used on ride resume so the average does not blend across a pause. */
+    fun clear() = samples.clear()
 }

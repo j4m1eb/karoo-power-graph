@@ -3,6 +3,16 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [0.1.6] — 2026-05-18
+
+### Added
+- **OTA updates** — declared `MANIFEST_URL` meta-data in the manifest pointing at `releases/latest/download/manifest.json`. Karoo OS (since karoo-ext 1.1.1) periodically fetches that JSON, compares its `latestVersionCode` against the installed app, and offers an in-OS update when a newer release is published. From 0.1.6 onward, future updates can be installed directly from the Karoo without a manual sideload.
+- `scripts/manifest.sh` — generates the `manifest.json` release asset from the current `versionName` / `versionCode` so it can be uploaded alongside the APK on `gh release create`.
+
+### Fixed
+- **Pauses no longer distort the curve.** While the ride is paused (auto- or manual pause) no samples are recorded; previously the first sample after resuming was joined to the last pre-pause sample by a straight line spanning the whole pause, so the interval looked interpolated. The graph now plots against *moving ride time* — each pause's duration is folded out of the time axis, so the curve continues seamlessly from where it left off, with no gap and no interpolated line. Pause boundaries are taken from the `RideState` stream; the power rolling average is reset on resume so it does not blend across the pause.
+- **Reduced memory pressure from per-frame bitmap allocation.** Each graph field now reuses two cached bitmaps (double-buffered) for live rendering instead of allocating a fresh `ARGB_8888` bitmap every second. Targets the "Application restarted" issue on long rides ([#5](https://github.com/svenk0711/sk0711-graph/issues/5)); a new bitmap is allocated only when the field size changes.
+
 ## [0.1.5] — 2026-04-26
 
 ### Added
