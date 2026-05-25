@@ -10,10 +10,6 @@ This is a personal fork of [svenk0711/sk0711-graph](https://github.com/svenk0711
 
 Tested on Karoo 3, compatible with Karoo 2.
 
-<p align="center">
-  <img src="sample1.jpg" alt="Two zone-graph data fields on a Karoo 3 during a ride — HR 133 bpm with a red/orange curve, Power 250 W with a multi-colored zone curve" width="360">
-</p>
-
 ## Features
 
 - **HR Zone Graph**, **Power Zone Graph** and **Power Zone Graph (NP)** as separate graphical data fields. The (NP) variant shows AVG and **Normalized Power** instead of MAX — useful for time trials.
@@ -25,7 +21,7 @@ Tested on Karoo 3, compatible with Karoo 2.
 
 ## Install
 
-Download `karoo-power-graph-1.0.0-debug.apk` from the [Releases](../../releases) page.
+Download `karoo-power-graph-1.0.1-debug.apk` from the [Releases](../../releases) page.
 
 > **OTA updates**: starting with 0.1.6, the Karoo OS itself checks for newer releases and offers a one-tap update on the device. You only need a manual sideload for the initial install (or to upgrade from 0.1.5 or earlier).
 
@@ -35,7 +31,7 @@ Download `karoo-power-graph-1.0.0-debug.apk` from the [Releases](../../releases)
 **Karoo 2:** install via ADB:
 
 ```
-adb install -r karoo-power-graph-1.0.0-debug.apk
+adb install -r karoo-power-graph-1.0.1-debug.apk
 ```
 
 Then in the Karoo ride-page editor, open the data field picker, find **Karoo Power Graph**, and add **HR Zone Graph**, **Power Zone Graph**, and/or **Power Zone Graph (NP)** to a page.
@@ -77,7 +73,7 @@ Then:
 ./gradlew assembleDebug
 ```
 
-Output: `app/build/outputs/apk/debug/karoo-power-graph-1.0.0-debug.apk`.
+Output: `app/build/outputs/apk/debug/karoo-power-graph-1.0.1-debug.apk`.
 
 ## License
 

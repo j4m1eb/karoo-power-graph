@@ -42,8 +42,6 @@ fi
 APK_NAME="karoo-power-graph-${VERSION_NAME}-debug.apk"
 APK_URL="https://github.com/${REPO}/releases/download/v${VERSION_NAME}/${APK_NAME}"
 ICON_URL="https://github.com/${REPO}/raw/main/app-icon.png"
-SAMPLE_URL="https://github.com/${REPO}/raw/main/sample1.jpg"
-
 JSON=$(cat <<EOF
 {
   "label": "Karoo Power Graph",
@@ -55,7 +53,7 @@ JSON=$(cat <<EOF
   "developer": "Jamie Bishop",
   "description": "Karoo extension: HR and Power as zone-coloured history curves with current value, AVG and MAX or NP. Configurable default time window; tap a field to cycle 1 min / 5 min / 20 min / Full.",
   "releaseNotes": "See https://github.com/${REPO}/releases/tag/v${VERSION_NAME}",
-  "screenshotUrls": ["${SAMPLE_URL}"]
+  "screenshotUrls": []
 }
 EOF
 )
