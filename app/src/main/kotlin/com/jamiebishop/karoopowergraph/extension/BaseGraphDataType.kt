@@ -1,4 +1,4 @@
-package com.sk0711.graph.extension
+package com.jamiebishop.karoopowergraph.extension
 
 import android.app.PendingIntent
 import android.content.Context
@@ -14,13 +14,13 @@ import io.hammerhead.karooext.models.RideState
 import io.hammerhead.karooext.models.StreamState
 import io.hammerhead.karooext.models.UpdateGraphicConfig
 import io.hammerhead.karooext.models.ViewConfig
-import com.sk0711.graph.R
-import com.sk0711.graph.graph.DataBuffer
-import com.sk0711.graph.graph.GraphRenderer
-import com.sk0711.graph.graph.PowerSmoother
-import com.sk0711.graph.graph.Sample
-import com.sk0711.graph.graph.SyntheticData
-import com.sk0711.graph.graph.TimeWindow
+import com.jamiebishop.karoopowergraph.R
+import com.jamiebishop.karoopowergraph.graph.DataBuffer
+import com.jamiebishop.karoopowergraph.graph.GraphRenderer
+import com.jamiebishop.karoopowergraph.graph.PowerSmoother
+import com.jamiebishop.karoopowergraph.graph.Sample
+import com.jamiebishop.karoopowergraph.graph.SyntheticData
+import com.jamiebishop.karoopowergraph.graph.TimeWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

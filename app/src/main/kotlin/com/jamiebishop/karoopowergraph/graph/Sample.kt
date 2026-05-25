@@ -1,4 +1,4 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 data class Sample(
     /** Moving ride time in ms — pause intervals are excluded, so the curve is continuous. */

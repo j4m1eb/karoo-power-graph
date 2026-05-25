@@ -1,9 +1,9 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 object ZoneColors {
     val HR = intArrayOf(
-        0xFF5588CC.toInt(),
-        0xFF44AA66.toInt(),
+        0xFF2F80ED.toInt(),
+        0xFF00C853.toInt(),
         0xFFDDBB22.toInt(),
         0xFFEE7722.toInt(),
         0xFFDD3333.toInt(),
@@ -11,8 +11,8 @@ object ZoneColors {
 
     val POWER = intArrayOf(
         0xFF888888.toInt(),
-        0xFF5588CC.toInt(),
-        0xFF44AA66.toInt(),
+        0xFF2F80ED.toInt(),
+        0xFF00C853.toInt(),
         0xFFDDBB22.toInt(),
         0xFFEE7722.toInt(),
         0xFFDD3333.toInt(),

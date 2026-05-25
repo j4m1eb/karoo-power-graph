@@ -18,7 +18,7 @@
 
 set -euo pipefail
 
-REPO="svenk0711/sk0711-graph"
+REPO="j4m1eb/karoo-power-graph"
 GRADLE="app/build.gradle.kts"
 
 OUTFILE=""
@@ -39,21 +39,21 @@ if [ -z "$VERSION_NAME" ] || [ -z "$VERSION_CODE" ]; then
     exit 1
 fi
 
-APK_NAME="sk0711-graph-${VERSION_NAME}-debug.apk"
+APK_NAME="karoo-power-graph-${VERSION_NAME}-debug.apk"
 APK_URL="https://github.com/${REPO}/releases/download/v${VERSION_NAME}/${APK_NAME}"
-ICON_URL="https://github.com/${REPO}/raw/master/app-icon.png"
-SAMPLE_URL="https://github.com/${REPO}/raw/master/sample1.jpg"
+ICON_URL="https://github.com/${REPO}/raw/main/app-icon.png"
+SAMPLE_URL="https://github.com/${REPO}/raw/main/sample1.jpg"
 
 JSON=$(cat <<EOF
 {
-  "label": "sk0711-graph",
-  "packageName": "com.sk0711.graph",
+  "label": "Karoo Power Graph",
+  "packageName": "com.jamiebishop.karoopowergraph",
   "latestApkUrl": "${APK_URL}",
   "latestVersion": "${VERSION_NAME}",
   "latestVersionCode": ${VERSION_CODE},
   "iconUrl": "${ICON_URL}",
-  "developer": "svenk0711",
-  "description": "Karoo extension: HR and Power as zone-coloured history curves with current value, AVG and MAX or NP. Configurable default time window; tap a field to cycle 1 min / 5 min / Full.",
+  "developer": "Jamie Bishop",
+  "description": "Karoo extension: HR and Power as zone-coloured history curves with current value, AVG and MAX or NP. Configurable default time window; tap a field to cycle 1 min / 5 min / 20 min / Full.",
   "releaseNotes": "See https://github.com/${REPO}/releases/tag/v${VERSION_NAME}",
   "screenshotUrls": ["${SAMPLE_URL}"]
 }

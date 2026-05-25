@@ -1,4 +1,4 @@
-package com.sk0711.graph.settings
+package com.jamiebishop.karoopowergraph.settings
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -6,12 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.sk0711.graph.graph.TimeWindow
+import com.jamiebishop.karoopowergraph.graph.TimeWindow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "sk0711_graph_settings",
+    name = "karoo_power_graph_settings",
 )
 
 object AppSettings {

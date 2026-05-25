@@ -1,11 +1,11 @@
-package com.sk0711.graph
+package com.jamiebishop.karoopowergraph
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import io.hammerhead.karooext.KarooSystemService
-import com.sk0711.graph.screens.MainScreen
-import com.sk0711.graph.theme.AppTheme
+import com.jamiebishop.karoopowergraph.screens.MainScreen
+import com.jamiebishop.karoopowergraph.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

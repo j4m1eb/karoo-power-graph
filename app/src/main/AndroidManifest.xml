@@ -12,7 +12,7 @@
 
         <meta-data
             android:name="io.hammerhead.karooext.MANIFEST_URL"
-            android:value="https://github.com/svenk0711/sk0711-graph/releases/latest/download/manifest.json" />
+            android:value="https://github.com/j4m1eb/karoo-power-graph/releases/latest/download/manifest.json" />
 
         <activity
             android:name=".MainActivity"
@@ -39,8 +39,8 @@
             android:name=".extension.TapReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.sk0711.graph.TOGGLE_HR" />
-                <action android:name="com.sk0711.graph.TOGGLE_POWER" />
+                <action android:name="com.jamiebishop.karoopowergraph.TOGGLE_HR" />
+                <action android:name="com.jamiebishop.karoopowergraph.TOGGLE_POWER" />
             </intent-filter>
         </receiver>
     </application>

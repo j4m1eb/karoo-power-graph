@@ -1,4 +1,4 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 import kotlin.math.sin
 import kotlin.random.Random

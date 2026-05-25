@@ -1,10 +1,10 @@
-package com.sk0711.graph.extension
+package com.jamiebishop.karoopowergraph.extension
 
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.extension.DataTypeImpl
 import io.hammerhead.karooext.extension.KarooExtension
-import com.sk0711.graph.graph.TimeWindow
-import com.sk0711.graph.settings.AppSettings
+import com.jamiebishop.karoopowergraph.graph.TimeWindow
+import com.jamiebishop.karoopowergraph.settings.AppSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -63,9 +63,9 @@ class HrPowerExtension : KarooExtension(EXTENSION_ID, "0.1.6") {
     }
 
     companion object {
-        const val EXTENSION_ID = "sk0711-graph"
-        const val ACTION_TOGGLE_HR = "com.sk0711.graph.TOGGLE_HR"
-        const val ACTION_TOGGLE_POWER = "com.sk0711.graph.TOGGLE_POWER"
+        const val EXTENSION_ID = "karoo-power-graph"
+        const val ACTION_TOGGLE_HR = "com.jamiebishop.karoopowergraph.TOGGLE_HR"
+        const val ACTION_TOGGLE_POWER = "com.jamiebishop.karoopowergraph.TOGGLE_POWER"
 
         @Volatile private var instance: HrPowerExtension? = null
         fun instance(): HrPowerExtension? = instance

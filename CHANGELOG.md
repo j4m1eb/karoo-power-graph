@@ -3,6 +3,16 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [1.0.0] — 2026-05-25
+
+### Added
+- **20-minute time window** — tap cycle and default picker now include 1 min → 5 min → 20 min → Full.
+
+### Changed
+- Graph text now uses the same monospace face as the tested Average Speed Colour extension for closer Karoo-style numerals.
+- Blue and green zone colours are more distinct on the graph.
+- Power graph smoothing increased from 3 seconds to 7 seconds for a calmer trace.
+
 ## [0.1.6] — 2026-05-18
 
 ### Added
@@ -11,7 +21,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this p
 
 ### Fixed
 - **Pauses no longer distort the curve.** While the ride is paused (auto- or manual pause) no samples are recorded; previously the first sample after resuming was joined to the last pre-pause sample by a straight line spanning the whole pause, so the interval looked interpolated. The graph now plots against *moving ride time* — each pause's duration is folded out of the time axis, so the curve continues seamlessly from where it left off, with no gap and no interpolated line. Pause boundaries are taken from the `RideState` stream; the 3-second power-curve smoothing is reset on resume so it does not blend across the pause. (AVG/MAX/NP are unaffected — they are still read directly from the Karoo's own streams.)
-- **Reduced memory pressure from per-frame bitmap allocation.** Each graph field now reuses two cached bitmaps (double-buffered) for live rendering instead of allocating a fresh `ARGB_8888` bitmap every second. Targets the "Application restarted" issue on long rides ([#5](https://github.com/svenk0711/sk0711-graph/issues/5)); a new bitmap is allocated only when the field size changes.
+- **Reduced memory pressure from per-frame bitmap allocation.** Each graph field now reuses two cached bitmaps (double-buffered) for live rendering instead of allocating a fresh `ARGB_8888` bitmap every second. Targets the "Application restarted" issue on long rides ([upstream #5](https://github.com/svenk0711/sk0711-graph/issues/5)); a new bitmap is allocated only when the field size changes.
 
 ## [0.1.5] — 2026-04-26
 

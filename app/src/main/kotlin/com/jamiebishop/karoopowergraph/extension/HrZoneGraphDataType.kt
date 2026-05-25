@@ -1,9 +1,9 @@
-package com.sk0711.graph.extension
+package com.jamiebishop.karoopowergraph.extension
 
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.DataType
-import com.sk0711.graph.graph.GraphRenderer
-import com.sk0711.graph.graph.TimeWindow
+import com.jamiebishop.karoopowergraph.graph.GraphRenderer
+import com.jamiebishop.karoopowergraph.graph.TimeWindow
 import kotlinx.coroutines.flow.StateFlow
 
 class HrZoneGraphDataType(

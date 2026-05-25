@@ -1,4 +1,4 @@
-package com.sk0711.graph.screens
+package com.jamiebishop.karoopowergraph.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,14 +32,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sk0711.graph.R
-import com.sk0711.graph.graph.GraphRenderer
-import com.sk0711.graph.graph.Sample
-import com.sk0711.graph.graph.SyntheticData
-import com.sk0711.graph.graph.TimeWindow
-import com.sk0711.graph.graph.ZoneGraph
-import com.sk0711.graph.settings.AppSettings
-import com.sk0711.graph.theme.AppTheme
+import com.jamiebishop.karoopowergraph.R
+import com.jamiebishop.karoopowergraph.graph.GraphRenderer
+import com.jamiebishop.karoopowergraph.graph.Sample
+import com.jamiebishop.karoopowergraph.graph.SyntheticData
+import com.jamiebishop.karoopowergraph.graph.TimeWindow
+import com.jamiebishop.karoopowergraph.graph.ZoneGraph
+import com.jamiebishop.karoopowergraph.settings.AppSettings
+import com.jamiebishop.karoopowergraph.theme.AppTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -99,7 +99,7 @@ fun MainScreen(close: () -> Unit = {}) {
             )
             Text(
                 "Tap a field on the ride screen to cycle the time window " +
-                    "(1 min / 5 min / full ride).",
+                    "(1 min / 5 min / 20 min / full ride).",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp,
             )

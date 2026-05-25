@@ -1,6 +1,6 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
-class PowerSmoother(private val windowSeconds: Int = 3) {
+class PowerSmoother(private val windowSeconds: Int = 7) {
 
     private val samples = ArrayDeque<Pair<Long, Float>>()
 

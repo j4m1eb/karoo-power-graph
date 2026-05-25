@@ -1,4 +1,4 @@
-package com.sk0711.graph.extension
+package com.jamiebishop.karoopowergraph.extension
 
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.KarooEvent

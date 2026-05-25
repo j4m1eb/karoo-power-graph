@@ -1,4 +1,4 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -14,6 +14,7 @@ object GraphRenderer {
     private const val FILL_ALPHA = 0xE0
     private val HR_ICON = Color.parseColor("#DD3333")
     private val POWER_ICON = Color.parseColor("#AA44CC")
+    private val KAROO_TYPEFACE: Typeface = Typeface.MONOSPACE
 
     enum class Kind { HR, POWER }
 
@@ -44,18 +45,18 @@ object GraphRenderer {
         val canvas = Canvas(bmp)
 
         val padPx = h * 0.05f
-        val statTextSize = h * 0.14f
-        val windowTextSize = h * 0.11f
+        val statTextSize = h * 0.132f
+        val windowTextSize = h * 0.105f
 
         val statPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
-            typeface = Typeface.DEFAULT
+            typeface = KAROO_TYPEFACE
             textSize = statTextSize
             style = Paint.Style.FILL
         }
         val windowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
-            typeface = Typeface.DEFAULT
+            typeface = KAROO_TYPEFACE
             textSize = windowTextSize
             style = Paint.Style.FILL
         }
@@ -73,8 +74,8 @@ object GraphRenderer {
 
         val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
-            typeface = Typeface.DEFAULT
-            textSize = h * 0.35f
+            typeface = KAROO_TYPEFACE
+            textSize = h * 0.335f
             style = Paint.Style.FILL
         }
 
@@ -114,7 +115,8 @@ object GraphRenderer {
         val avgX = w - padPx - avgWidth
         canvas.drawText(avgText, avgX, avgBaseline, statPaint)
 
-        val maxBaseline = avgBaseline + statPaint.fontSpacing
+        val statLineStep = maxOf(avgBounds.height(), maxBounds.height()) * 1.2f
+        val maxBaseline = avgBaseline + statLineStep
         val maxX = w - padPx - maxWidth
         canvas.drawText(maxText, maxX, maxBaseline, statPaint)
 
@@ -139,7 +141,7 @@ object GraphRenderer {
         }
 
         val leftBottom = padPx + valueHeight
-        val rightBottom = padPx + avgBounds.height() + statPaint.fontSpacing
+        val rightBottom = maxBaseline + maxBounds.bottom.coerceAtLeast(0)
         val curveTop = maxOf(leftBottom, rightBottom) + padPx * 0.5f
         val curveH = (h - curveTop).coerceAtLeast(1f)
 

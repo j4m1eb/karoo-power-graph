@@ -1,4 +1,4 @@
-package com.sk0711.graph.theme
+package com.jamiebishop.karoopowergraph.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

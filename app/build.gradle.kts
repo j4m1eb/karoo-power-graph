@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    namespace = "com.sk0711.graph"
+    namespace = "com.jamiebishop.karoopowergraph"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sk0711.graph"
+        applicationId = "com.jamiebishop.karoopowergraph"
         minSdk = 23
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.1.6"
+        versionCode = 10
+        versionName = "1.0.0"
     }
 
     buildTypes {
@@ -36,7 +36,7 @@ android {
     applicationVariants.all {
         outputs.all {
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "sk0711-graph-${defaultConfig.versionName}-${buildType.name}.apk"
+                "karoo-power-graph-${defaultConfig.versionName}-${buildType.name}.apk"
         }
     }
 }

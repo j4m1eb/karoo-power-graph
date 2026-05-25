@@ -1,4 +1,4 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -162,5 +162,16 @@ class ZoneColorsTest {
     fun zoneZeroOrBelowReturnsFallback() {
         assertEquals(ZoneColors.FALLBACK, ZoneColors.hr(0))
         assertEquals(ZoneColors.FALLBACK, ZoneColors.power(-1))
+    }
+}
+
+class TimeWindowTest {
+
+    @Test
+    fun tapCycleIncludesTwentyMinutes() {
+        assertEquals(TimeWindow.FIVE_MIN, TimeWindow.ONE_MIN.next())
+        assertEquals(TimeWindow.TWENTY_MIN, TimeWindow.FIVE_MIN.next())
+        assertEquals(TimeWindow.FULL, TimeWindow.TWENTY_MIN.next())
+        assertEquals(TimeWindow.ONE_MIN, TimeWindow.FULL.next())
     }
 }

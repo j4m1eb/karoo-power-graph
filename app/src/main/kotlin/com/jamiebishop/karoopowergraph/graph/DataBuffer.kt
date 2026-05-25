@@ -1,4 +1,4 @@
-package com.sk0711.graph.graph
+package com.jamiebishop.karoopowergraph.graph
 
 class DataBuffer(private val capacitySeconds: Int = 7200) {
 
