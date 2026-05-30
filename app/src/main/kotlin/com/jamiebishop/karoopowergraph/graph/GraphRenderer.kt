@@ -6,14 +6,16 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Typeface
 
 object GraphRenderer {
 
     private const val LINE_WIDTH_PX = 2.5f
-    private const val FILL_ALPHA = 0xE0
+    private const val FILL_ALPHA = 0xFF
+    private const val FILL_OVERLAP_PX = 1.0f
     private val HR_ICON = Color.parseColor("#DD3333")
-    private val POWER_ICON = Color.parseColor("#AA44CC")
+    private val POWER_ICON = Color.WHITE
     private val KAROO_TYPEFACE: Typeface = Typeface.MONOSPACE
 
     enum class Kind { HR, POWER }
@@ -46,7 +48,7 @@ object GraphRenderer {
 
         val padPx = h * 0.05f
         val statTextSize = h * 0.132f
-        val windowTextSize = h * 0.105f
+        val windowTextSize = h * 0.082f
 
         val statPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
@@ -55,10 +57,15 @@ object GraphRenderer {
             style = Paint.Style.FILL
         }
         val windowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = textColor
+            color = Color.WHITE
             typeface = KAROO_TYPEFACE
             textSize = windowTextSize
             style = Paint.Style.FILL
+        }
+        val windowStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#6B7280")
+            style = Paint.Style.STROKE
+            strokeWidth = maxOf(1f, h * 0.008f)
         }
 
         val currentText = samples.lastOrNull()?.value?.toInt()?.toString().orEmpty()
@@ -89,23 +96,23 @@ object GraphRenderer {
             valueWidth = valuePaint.measureText(currentText)
             val vb = Rect().also { valuePaint.getTextBounds(currentText, 0, currentText.length, it) }
             valueHeight = vb.height().toFloat()
-            iconSize = valueHeight * 0.85f
-            val leftUsed = padPx + iconSize + padPx * 0.8f + valueWidth
+            iconSize = valueHeight * iconScale(kind)
+            val leftUsed = padPx + iconSize + valueGap(kind, padPx) + valueWidth
             if (leftUsed > maxLeftColRight) {
-                val scale = (maxLeftColRight - padPx) / (iconSize + padPx * 0.8f + valueWidth)
+                val scale = (maxLeftColRight - padPx) / (iconSize + valueGap(kind, padPx) + valueWidth)
                 valuePaint.textSize *= scale
                 valueWidth = valuePaint.measureText(currentText)
                 valuePaint.getTextBounds(currentText, 0, currentText.length, vb)
                 valueHeight = vb.height().toFloat()
-                iconSize = valueHeight * 0.85f
+                iconSize = valueHeight * iconScale(kind)
             }
         }
 
-        val iconX = padPx
+        val iconX = if (kind == Kind.POWER) padPx * 0.65f else padPx
         val iconTopAlign = padPx + (valueHeight - iconSize) / 2f
         drawIcon(canvas, kind, iconX, iconTopAlign, iconSize)
 
-        val valueTextX = iconX + iconSize + padPx * 0.8f
+        val valueTextX = iconX + iconSize + valueGap(kind, padPx)
         val valueBaseline = padPx + valueHeight
         if (currentText.isNotEmpty()) {
             canvas.drawText(currentText, valueTextX, valueBaseline, valuePaint)
@@ -120,22 +127,34 @@ object GraphRenderer {
         val maxX = w - padPx - maxWidth
         canvas.drawText(maxText, maxX, maxBaseline, statPaint)
 
-        if (!windowLabel.isNullOrEmpty()) {
+        val compactWindowLabel = windowLabel?.compactWindowLabel()
+        if (!compactWindowLabel.isNullOrEmpty()) {
             val leftColRight = valueTextX + valueWidth
             val centerLeft = leftColRight + padPx * 0.8f
             val centerRight = rightColLeft - padPx * 0.8f
             val available = centerRight - centerLeft
             if (available > 0f) {
-                var labelWidth = windowPaint.measureText(windowLabel)
+                var labelWidth = windowPaint.measureText(compactWindowLabel)
                 if (labelWidth > available) {
                     windowPaint.textSize *= available / labelWidth
-                    labelWidth = windowPaint.measureText(windowLabel)
+                    labelWidth = windowPaint.measureText(compactWindowLabel)
                 }
                 if (windowPaint.textSize >= h * 0.06f) {
-                    val windowBounds = Rect().also { windowPaint.getTextBounds(windowLabel, 0, windowLabel.length, it) }
-                    val wx = centerLeft + (available - labelWidth) / 2f
-                    val wy = padPx + windowBounds.height()
-                    canvas.drawText(windowLabel, wx, wy, windowPaint)
+                    val windowBounds = Rect().also {
+                        windowPaint.getTextBounds(compactWindowLabel, 0, compactWindowLabel.length, it)
+                    }
+                    val tagPadX = padPx * 0.65f
+                    val tagPadY = padPx * 0.28f
+                    val tagW = labelWidth + tagPadX * 2f
+                    val tagH = windowBounds.height() + tagPadY * 2f
+                    val tagLeft = centerLeft + (available - tagW) / 2f
+                    val tagTop = padPx + h * 0.015f
+                    val tagRect = RectF(tagLeft, tagTop, tagLeft + tagW, tagTop + tagH)
+                    val radius = tagH * 0.35f
+                    canvas.drawRoundRect(tagRect, radius, radius, windowStrokePaint)
+                    val wx = tagRect.left + tagPadX
+                    val wy = tagRect.top + tagPadY + windowBounds.height()
+                    canvas.drawText(compactWindowLabel, wx, wy, windowPaint)
                 }
             }
         }
@@ -152,7 +171,7 @@ object GraphRenderer {
             strokeWidth = LINE_WIDTH_PX
             strokeCap = Paint.Cap.ROUND
         }
-        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        val fillPaint = Paint().apply { style = Paint.Style.FILL }
         val path = Path()
         val totalH = h.toFloat()
         for (seg in frame.segments) {
@@ -163,11 +182,13 @@ object GraphRenderer {
             fillPaint.color = (baseColor and 0x00FFFFFF) or (FILL_ALPHA shl 24)
             val y0 = seg.y0 + curveTop
             val y1 = seg.y1 + curveTop
+            val x0 = (seg.x0 - FILL_OVERLAP_PX).coerceAtLeast(0f)
+            val x1 = (seg.x1 + FILL_OVERLAP_PX).coerceAtMost(w.toFloat())
             path.reset()
-            path.moveTo(seg.x0, y0)
-            path.lineTo(seg.x1, y1)
-            path.lineTo(seg.x1, totalH)
-            path.lineTo(seg.x0, totalH)
+            path.moveTo(x0, y0)
+            path.lineTo(x1, y1)
+            path.lineTo(x1, totalH)
+            path.lineTo(x0, totalH)
             path.close()
             canvas.drawPath(path, fillPaint)
 
@@ -206,4 +227,17 @@ object GraphRenderer {
         }
         canvas.drawPath(p, paint)
     }
+
+    private fun iconScale(kind: Kind): Float = if (kind == Kind.POWER) 0.62f else 0.85f
+
+    private fun valueGap(kind: Kind, padPx: Float): Float =
+        if (kind == Kind.POWER) padPx * 0.38f else padPx * 0.8f
+
+    private fun String.compactWindowLabel(): String =
+        when (this) {
+            "1 min" -> "1m"
+            "5 min" -> "5m"
+            "20 min" -> "20m"
+            else -> this
+        }
 }

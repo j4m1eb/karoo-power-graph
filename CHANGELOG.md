@@ -3,6 +3,15 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [1.0.2] — 2026-05-30
+
+### Changed
+- Power fields now subscribe to Karoo's own 3-second smoothed power stream for the large live value.
+- Power chart smoothing now happens in the renderer via drawn buckets: 5-second buckets for 1 min / 5 min, 10-second buckets for 20 min, and adaptive buckets for Full.
+- The chart palette is brighter with stronger separation between blue, green, yellow, orange, red, and purple zones.
+- Power icon is smaller and white, the live value is shifted left, and the active time window is shown as a compact tag.
+- Chart fills are fully opaque and slightly overlapped to avoid thin dark lines between coloured blocks on-device.
+
 ## [1.0.1] — 2026-05-25
 
 ### Changed

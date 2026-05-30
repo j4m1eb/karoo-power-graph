@@ -17,7 +17,6 @@ import io.hammerhead.karooext.models.ViewConfig
 import com.jamiebishop.karoopowergraph.R
 import com.jamiebishop.karoopowergraph.graph.DataBuffer
 import com.jamiebishop.karoopowergraph.graph.GraphRenderer
-import com.jamiebishop.karoopowergraph.graph.PowerSmoother
 import com.jamiebishop.karoopowergraph.graph.Sample
 import com.jamiebishop.karoopowergraph.graph.SyntheticData
 import com.jamiebishop.karoopowergraph.graph.TimeWindow
@@ -45,7 +44,6 @@ abstract class BaseGraphDataType(
     protected abstract val kind: GraphRenderer.Kind
 
     private val buffer = DataBuffer()
-    private var smoother: PowerSmoother? = null
     private val sampleSignal = MutableStateFlow(0L)
     private val avgFlow = MutableStateFlow(0)
     private val maxFlow = MutableStateFlow(0)
@@ -65,8 +63,6 @@ abstract class BaseGraphDataType(
     private var pauseOffsetMs = 0L
 
     fun startCollecting(scope: CoroutineScope) {
-        if (kind == GraphRenderer.Kind.POWER) smoother = PowerSmoother()
-
         scope.launch {
             var inPause = false
             var pauseStartWallMs = 0L
@@ -87,14 +83,12 @@ abstract class BaseGraphDataType(
                     // moving-time axis skips it — the curve continues with no gap.
                     pauseOffsetMs += System.currentTimeMillis() - pauseStartWallMs
                     inPause = false
-                    smoother?.clear()
                 }
                 val raw = (valueState as? StreamState.Streaming)?.dataPoint?.singleValue?.toFloat()
                     ?: return@collect
                 val zone = (zoneState as? StreamState.Streaming)?.dataPoint?.singleValue?.toInt() ?: 0
                 val movingNow = System.currentTimeMillis() - pauseOffsetMs
-                val smoothed = smoother?.add(movingNow, raw) ?: raw
-                buffer.add(Sample(movingNow, smoothed, zone))
+                buffer.add(Sample(movingNow, raw, zone))
                 sampleSignal.value = movingNow
             }
         }

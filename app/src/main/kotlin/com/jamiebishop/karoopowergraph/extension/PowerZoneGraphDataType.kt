@@ -18,7 +18,7 @@ class PowerZoneGraphDataType(
     if (useNp) TYPE_ID_NP else TYPE_ID,
 ) {
 
-    override val valueDataType: String = DataType.Type.POWER
+    override val valueDataType: String = DataType.Type.SMOOTHED_3S_AVERAGE_POWER
     override val zoneDataType: String = DataType.Type.POWER_ZONE
     override val avgDataType: String = DataType.Type.AVERAGE_POWER
     override val maxDataType: String =

@@ -106,6 +106,15 @@ class GraphGeometryTest {
     }
 
     @Test
+    fun oneMinuteWindowBucketsOneSecondSamplesIntoFiveSecondCurve() {
+        val samples = (0..60).map { second ->
+            Sample(second * 1000L, 100f + second, 2)
+        }
+        val frame = GraphGeometry.compute(samples, 100, 100, 60, 60_000L)
+        assertEquals(12, frame.segments.size)
+    }
+
+    @Test
     fun samplesAllBeforeWindowReturnNoSegments() {
         val samples = listOf(
             Sample(-120_000L, 100f, 1),

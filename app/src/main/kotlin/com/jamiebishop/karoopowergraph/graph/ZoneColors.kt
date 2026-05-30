@@ -2,24 +2,24 @@ package com.jamiebishop.karoopowergraph.graph
 
 object ZoneColors {
     val HR = intArrayOf(
-        0xFF2F80ED.toInt(),
-        0xFF00C853.toInt(),
-        0xFFDDBB22.toInt(),
-        0xFFEE7722.toInt(),
-        0xFFDD3333.toInt(),
+        0xFF00A3FF.toInt(),
+        0xFF00E676.toInt(),
+        0xFFFFEA00.toInt(),
+        0xFFFF8A00.toInt(),
+        0xFFFF1744.toInt(),
     )
 
     val POWER = intArrayOf(
-        0xFF888888.toInt(),
-        0xFF2F80ED.toInt(),
-        0xFF00C853.toInt(),
-        0xFFDDBB22.toInt(),
-        0xFFEE7722.toInt(),
-        0xFFDD3333.toInt(),
-        0xFFAA44CC.toInt(),
+        0xFFB0BEC5.toInt(),
+        0xFF00A3FF.toInt(),
+        0xFF00E676.toInt(),
+        0xFFFFEA00.toInt(),
+        0xFFFF8A00.toInt(),
+        0xFFFF1744.toInt(),
+        0xFFD500F9.toInt(),
     )
 
-    const val FALLBACK = 0xFF999999.toInt()
+    const val FALLBACK = 0xFFB0BEC5.toInt()
 
     fun hr(zone: Int): Int = pick(HR, zone)
 

@@ -47,14 +47,16 @@ object GraphGeometry {
             else -> samples.subList(anchorIdx, samples.size)
         }
 
-        if (visible.size < 2) {
-            val v = visible.firstOrNull()?.value ?: 0f
+        val plotted = bucketSamples(visible, windowStart, bucketMsFor(timeWindowSec, windowMs))
+
+        if (plotted.size < 2) {
+            val v = plotted.firstOrNull()?.value ?: 0f
             return Frame(emptyList(), widthPx, heightPx, v, v)
         }
 
-        var vMin = visible.first().value
-        var vMax = visible.first().value
-        for (s in visible) {
+        var vMin = plotted.first().value
+        var vMax = plotted.first().value
+        for (s in plotted) {
             if (s.value < vMin) vMin = s.value
             if (s.value > vMax) vMax = s.value
         }
@@ -70,10 +72,10 @@ object GraphGeometry {
         fun xAt(tMs: Long): Float = (tMs - windowStart).toFloat() / windowMs.toFloat() * w
         fun yAt(v: Float): Float = h - ((v - yMin) / ySpan * h)
 
-        val segments = ArrayList<Segment>(visible.size - 1)
-        for (i in 1 until visible.size) {
-            val a = visible[i - 1]
-            val b = visible[i]
+        val segments = ArrayList<Segment>(plotted.size - 1)
+        for (i in 1 until plotted.size) {
+            val a = plotted[i - 1]
+            val b = plotted[i]
             segments.add(
                 Segment(
                     x0 = xAt(a.timestampMs),
@@ -85,5 +87,50 @@ object GraphGeometry {
             )
         }
         return Frame(segments, widthPx, heightPx, yMin, yMax)
+    }
+
+    private fun bucketMsFor(timeWindowSec: Int?, windowMs: Long): Long =
+        when (timeWindowSec) {
+            60 -> 5_000L
+            300 -> 5_000L
+            1200 -> 10_000L
+            null -> if (windowMs <= 5_000L) 1L else maxOf(5_000L, windowMs / 240L)
+            else -> 5_000L
+        }
+
+    private fun bucketSamples(samples: List<Sample>, windowStart: Long, bucketMs: Long): List<Sample> {
+        if (samples.size < 3 || bucketMs <= 1L) return samples
+
+        val result = ArrayList<Sample>()
+        val bucketable = if (samples.first().timestampMs < windowStart) {
+            result.add(samples.first())
+            samples.drop(1)
+        } else {
+            samples
+        }
+
+        val buckets = linkedMapOf<Long, MutableList<Sample>>()
+        for (sample in bucketable) {
+            val bucket = ((sample.timestampMs - windowStart).coerceAtLeast(0L)) / bucketMs
+            buckets.getOrPut(bucket) { ArrayList() }.add(sample)
+        }
+
+        for (group in buckets.values) {
+            if (group.size == 1) {
+                result.add(group.first())
+                continue
+            }
+            val timestamp = group.sumOf { it.timestampMs } / group.size
+            val value = (group.sumOf { it.value.toDouble() } / group.size).toFloat()
+            val zone = group
+                .groupingBy { it.zone }
+                .eachCount()
+                .maxByOrNull { it.value }
+                ?.key
+                ?: group.last().zone
+            result.add(Sample(timestamp, value, zone))
+        }
+
+        return result
     }
 }

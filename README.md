@@ -4,76 +4,127 @@
 
 # Karoo Power Graph
 
-A [Hammerhead Karoo](https://hammerhead.io/) extension that adds two graphical data fields showing the recent history of heart rate and power as a zone-colored curve.
+Karoo Power Graph is a Hammerhead Karoo extension for showing heart rate and power as compact, zone-coloured history graphs inside a ride data field.
 
-This is a personal fork of [svenk0711/sk0711-graph](https://github.com/svenk0711/sk0711-graph), renamed so it can evolve with different behavior and install separately from the original extension.
+This is Jamie Bishop's personal fork of [svenk0711/sk0711-graph](https://github.com/svenk0711/sk0711-graph). The original extension and Karoo data-field integration came from Sven's work; this fork keeps that foundation but changes the behaviour, styling, naming, package id, release assets, and graph presentation to suit my own Karoo setup.
 
-Tested on Karoo 3, compatible with Karoo 2.
+Tested on Karoo 3. It should also work on Karoo 2.
 
-## Features
+## What It Adds
 
-- **HR Zone Graph**, **Power Zone Graph** and **Power Zone Graph (NP)** as separate graphical data fields. The (NP) variant shows AVG and **Normalized Power** instead of MAX — useful for time trials.
-- Curve color follows the Karoo zone of each sample (5 HR zones, 7 power zones).
-- Current value, average, and max shown alongside the curve. AVG/MAX (or AVG/NP) are read from the Karoo's own streams (`AVERAGE_HR`, `MAX_HR`, `AVERAGE_POWER`, `MAX_POWER`, `NORMALIZED_POWER`) so they match the values other data fields on the same page display.
-- **Tap a field** to cycle its time window: 1 min → 5 min → 20 min → Full ride. Each field keeps its own window.
-- **Default time window** is configurable in the app's preview screen (1 min / 5 min / 20 min / Full) and persists across rides.
-- Power curve uses a 7-second rolling average (HR is not smoothed).
+- **HR Zone Graph**: live heart rate with a zone-coloured history curve.
+- **Power Zone Graph**: live 3-second smoothed power with AVG and MAX.
+- **Power Zone Graph (NP)**: live 3-second smoothed power with AVG and Normalized Power, useful for time trials or pacing-focused pages.
+- **Tap-to-cycle time windows**: 1 min -> 5 min -> 20 min -> Full ride.
+- **Configurable default window** in the app preview screen.
+- **Karoo-native stats** for AVG, MAX, and NP, read directly from Karoo streams so they match other Karoo data fields.
+- **Karoo-native zones** for HR and power, using the rider profile's current zone setup.
+- **Bucketed chart rendering** so short windows look like a readable curve rather than a noisy set of one-second spikes.
+- **Bright zone palette** tuned for quick reading on the Karoo screen.
+
+## Current Behaviour
+
+The large live power number uses Karoo's own `SMOOTHED_3S_AVERAGE_POWER` stream. It is not instant power and it is not calculated separately by this app.
+
+AVG, MAX, and NP are also read from Karoo's own streams:
+
+- `AVERAGE_HR`
+- `MAX_HR`
+- `AVERAGE_POWER`
+- `MAX_POWER`
+- `NORMALIZED_POWER`
+
+The chart is smoothed only for drawing:
+
+- `1 min`: 5-second buckets
+- `5 min`: 5-second buckets
+- `20 min`: 10-second buckets
+- `Full`: adaptive buckets based on ride length
+
+The app folds pauses out of the graph's time axis, so the curve continues from where the ride resumed instead of drawing a long interpolated line across a pause.
 
 ## Install
 
-Download `karoo-power-graph-1.0.1-debug.apk` from the [Releases](../../releases) page.
+Download `karoo-power-graph-1.0.2-debug.apk` from the [Releases](../../releases) page.
 
-> **OTA updates**: starting with 0.1.6, the Karoo OS itself checks for newer releases and offers a one-tap update on the device. You only need a manual sideload for the initial install (or to upgrade from 0.1.5 or earlier).
+Karoo OS can use the included OTA manifest for future updates. For the first install, sideload the APK.
 
-> The released APK is a **debug build** — signed with Android's generic debug key rather than a stable release key. This is standard practice for sideloaded Karoo extensions and means the file name ends in `-debug.apk`. It is fully functional; the `-debug` suffix is a packaging detail, not a quality signal. If the signing story changes in a future release, it will be noted here.
+Karoo 3:
 
-**Karoo 3:** share the APK link via the Companion app, or install via ADB over USB.
-**Karoo 2:** install via ADB:
+- Share the APK link via the Hammerhead Companion app, or install via ADB over USB.
 
+Karoo 2 / ADB:
+
+```bash
+adb install -r karoo-power-graph-1.0.2-debug.apk
 ```
-adb install -r karoo-power-graph-1.0.1-debug.apk
-```
 
-Then in the Karoo ride-page editor, open the data field picker, find **Karoo Power Graph**, and add **HR Zone Graph**, **Power Zone Graph**, and/or **Power Zone Graph (NP)** to a page.
+Then open the Karoo ride-page editor, choose **Karoo Power Graph**, and add one of:
 
-## Uninstall
+- **HR Zone Graph**
+- **Power Zone Graph**
+- **Power Zone Graph (NP)**
 
-On the Karoo itself (no ADB needed):
-
-1. Main menu → **Settings**
-2. Scroll to the bottom and open **System Info / Android Settings** (exact label depends on firmware)
-3. Open **Apps**
-4. Select **Karoo Power Graph** from the list
-5. Tap **Uninstall**
+The released APK is a debug build signed with Android's debug key. That is normal for sideloaded Karoo extensions; the `-debug` suffix is a packaging detail.
 
 ## Usage
 
-- Tap the field to cycle the visible time window (1 min → 5 min → 20 min → Full).
-- Zones come from the Karoo's own HR-zone and power-zone configuration (set under the rider profile).
+Tap a graph field during a ride to cycle:
 
-## Known issues
+```text
+1 min -> 5 min -> 20 min -> Full
+```
 
-- **Updating from 0.1.3 to any later version fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`.** 0.1.3 was signed with a different debug keystore, so Android refuses the in-place update. **Workaround:** uninstall 0.1.3 first, then sideload the new version. Your existing data field placements on Karoo ride pages are preserved across the reinstall — the field IDs are unchanged. From 0.1.4 onward all builds use the same keystore, so 0.1.4 → 0.1.5 (and later) updates work normally.
-- **Extension may restart on long rides (~4 h+).** On extended rides, Karoo can display "Application restarted" one or more times. The recording itself is unaffected; only the curve buffer is reset. Likely cause is memory pressure from per-frame bitmap allocations in the renderer. Tracked upstream in [#5](https://github.com/svenk0711/sk0711-graph/issues/5).
+Each field keeps its own current window. The default starting window can be changed in the app's preview/settings screen.
 
-## Build from source
+## Build From Source
 
-Requirements: Android Studio (Giraffe or later) and a GitHub Personal Access Token with `read:packages` scope — the `karoo-ext` SDK is hosted on GitHub Packages.
+Requirements:
+
+- Android Studio or the Android command-line build tools
+- Java 21
+- A GitHub Personal Access Token with `read:packages` scope, because Hammerhead's `karoo-ext` SDK is hosted on GitHub Packages
 
 Add credentials to `local.properties`:
 
-```
+```properties
 gpr.user=YOUR_GITHUB_USERNAME
 gpr.key=YOUR_GITHUB_TOKEN
 ```
 
-Then:
+Build:
 
-```
-./gradlew assembleDebug
+```bash
+./gradlew test :app:assembleDebug
 ```
 
-Output: `app/build/outputs/apk/debug/karoo-power-graph-1.0.1-debug.apk`.
+Output:
+
+```text
+app/build/outputs/apk/debug/karoo-power-graph-1.0.2-debug.apk
+```
+
+Generate the OTA manifest:
+
+```bash
+bash scripts/manifest.sh -o manifest.json
+```
+
+## Uninstall
+
+On the Karoo:
+
+1. Open **Settings**.
+2. Open **System Info / Android Settings**.
+3. Open **Apps**.
+4. Select **Karoo Power Graph**.
+5. Tap **Uninstall**.
+
+## Credits
+
+This project is based on [svenk0711/sk0711-graph](https://github.com/svenk0711/sk0711-graph) by Sven. The original project provided the starting point for the Karoo extension structure and graph data fields.
+
+This fork changes the identity and behaviour enough to install separately and evolve independently.
 
 ## License
 
