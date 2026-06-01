@@ -24,6 +24,8 @@ object GraphGeometry {
         heightPx: Int,
         timeWindowSec: Int?,
         nowMs: Long,
+        minYSpan: Float = 1f,
+        floorAtZero: Boolean = false,
     ): Frame {
         if (samples.isEmpty() || widthPx <= 0 || heightPx <= 0) {
             return Frame(emptyList(), widthPx, heightPx, 0f, 0f)
@@ -47,7 +49,8 @@ object GraphGeometry {
             else -> samples.subList(anchorIdx, samples.size)
         }
 
-        val plotted = bucketSamples(visible, windowStart, bucketMsFor(timeWindowSec, windowMs))
+        val smoothed = smoothSamplesWithinZones(visible, smoothingMsFor(timeWindowSec))
+        val plotted = downsampleSamples(smoothed, maxPointsFor(timeWindowSec, widthPx))
 
         if (plotted.size < 2) {
             val v = plotted.firstOrNull()?.value ?: 0f
@@ -62,8 +65,17 @@ object GraphGeometry {
         }
         val range = vMax - vMin
         val pad = if (range > 0f) range * 0.05f else maxOf(vMax * 0.05f, 1f)
-        val yMin = vMin - pad
-        val yMax = vMax + pad
+        var yMin = if (floorAtZero) 0f else vMin - pad
+        var yMax = vMax + pad
+        if (yMax - yMin < minYSpan) {
+            if (floorAtZero) {
+                yMax = yMin + minYSpan
+            } else {
+                val extra = (minYSpan - (yMax - yMin)) / 2f
+                yMin -= extra
+                yMax += extra
+            }
+        }
         val ySpan = yMax - yMin
 
         val w = widthPx.toFloat()
@@ -89,48 +101,75 @@ object GraphGeometry {
         return Frame(segments, widthPx, heightPx, yMin, yMax)
     }
 
-    private fun bucketMsFor(timeWindowSec: Int?, windowMs: Long): Long =
+    private fun smoothingMsFor(timeWindowSec: Int?): Long =
         when (timeWindowSec) {
-            60 -> 5_000L
+            60 -> 3_000L
             300 -> 5_000L
             1200 -> 10_000L
-            null -> if (windowMs <= 5_000L) 1L else maxOf(5_000L, windowMs / 240L)
+            null -> 15_000L
             else -> 5_000L
         }
 
-    private fun bucketSamples(samples: List<Sample>, windowStart: Long, bucketMs: Long): List<Sample> {
-        if (samples.size < 3 || bucketMs <= 1L) return samples
-
-        val result = ArrayList<Sample>()
-        val bucketable = if (samples.first().timestampMs < windowStart) {
-            result.add(samples.first())
-            samples.drop(1)
-        } else {
-            samples
+    private fun maxPointsFor(timeWindowSec: Int?, widthPx: Int): Int =
+        when (timeWindowSec) {
+            60 -> Int.MAX_VALUE
+            300 -> (widthPx / 3).coerceIn(100, 220)
+            1200 -> widthPx.coerceIn(240, 520)
+            null -> widthPx.coerceIn(240, 520)
+            else -> Int.MAX_VALUE
         }
 
-        val buckets = linkedMapOf<Long, MutableList<Sample>>()
-        for (sample in bucketable) {
-            val bucket = ((sample.timestampMs - windowStart).coerceAtLeast(0L)) / bucketMs
-            buckets.getOrPut(bucket) { ArrayList() }.add(sample)
-        }
+    private fun smoothSamplesWithinZones(samples: List<Sample>, smoothingMs: Long): List<Sample> {
+        if (samples.size < 3 || smoothingMs <= 1_000L) return samples
 
-        for (group in buckets.values) {
-            if (group.size == 1) {
-                result.add(group.first())
-                continue
+        val result = ArrayList<Sample>(samples.size)
+        var runStart = 0
+        while (runStart < samples.size) {
+            val zone = samples[runStart].zone
+            var runEnd = runStart + 1
+            while (runEnd < samples.size && samples[runEnd].zone == zone) {
+                runEnd += 1
             }
-            val timestamp = group.sumOf { it.timestampMs } / group.size
-            val value = (group.sumOf { it.value.toDouble() } / group.size).toFloat()
-            val zone = group
-                .groupingBy { it.zone }
-                .eachCount()
-                .maxByOrNull { it.value }
-                ?.key
-                ?: group.last().zone
-            result.add(Sample(timestamp, value, zone))
+            smoothRun(samples, runStart, runEnd, smoothingMs, result)
+            runStart = runEnd
         }
+        return result
+    }
 
+    private fun smoothRun(
+        samples: List<Sample>,
+        runStart: Int,
+        runEnd: Int,
+        smoothingMs: Long,
+        result: MutableList<Sample>,
+    ) {
+        var start = runStart
+        var sum = 0.0
+        for (end in runStart until runEnd) {
+            val current = samples[end]
+            sum += current.value
+            val cutoff = current.timestampMs - smoothingMs
+            while (start < end && samples[start].timestampMs < cutoff) {
+                sum -= samples[start].value
+                start += 1
+            }
+            val count = end - start + 1
+            result.add(current.copy(value = (sum / count).toFloat()))
+        }
+    }
+
+    private fun downsampleSamples(samples: List<Sample>, maxPoints: Int): List<Sample> {
+        if (samples.size <= maxPoints) return samples
+        val result = ArrayList<Sample>(maxPoints)
+        val stride = ((samples.size - 1).toDouble() / (maxPoints - 1).toDouble()).coerceAtLeast(1.0)
+        var next = 0.0
+        while (next < samples.lastIndex) {
+            result.add(samples[next.toInt()])
+            next += stride
+        }
+        if (result.lastOrNull() != samples.last()) {
+            result.add(samples.last())
+        }
         return result
     }
 }

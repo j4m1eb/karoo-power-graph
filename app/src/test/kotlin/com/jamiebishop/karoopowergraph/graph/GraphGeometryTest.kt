@@ -106,12 +106,21 @@ class GraphGeometryTest {
     }
 
     @Test
-    fun oneMinuteWindowBucketsOneSecondSamplesIntoFiveSecondCurve() {
+    fun oneMinuteWindowKeepsFineSpacingAfterSmoothing() {
         val samples = (0..60).map { second ->
             Sample(second * 1000L, 100f + second, 2)
         }
         val frame = GraphGeometry.compute(samples, 100, 100, 60, 60_000L)
-        assertEquals(12, frame.segments.size)
+        assertEquals(60, frame.segments.size)
+    }
+
+    @Test
+    fun fullWindowDownsamplesLongRidesWithoutCollapsingIntoHugeBuckets() {
+        val samples = (0..10_800).map { second ->
+            Sample(second * 1000L, 100f + (second % 60), 2)
+        }
+        val frame = GraphGeometry.compute(samples, 480, 100, null, 10_800_000L)
+        assertTrue(frame.segments.size in 240..520)
     }
 
     @Test

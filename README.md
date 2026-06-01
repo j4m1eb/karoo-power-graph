@@ -19,7 +19,8 @@ Tested on Karoo 3. It should also work on Karoo 2.
 - **Configurable default window** in the app preview screen.
 - **Karoo-native stats** for AVG, MAX, and NP, read directly from Karoo streams so they match other Karoo data fields.
 - **Karoo-native zones** for HR and power, using the rider profile's current zone setup.
-- **Bucketed chart rendering** so short windows look like a readable curve rather than a noisy set of one-second spikes.
+- **Lower-density chart rendering** so short windows keep power detail without looking like a dense comb of one-second slices.
+- **Compact field layout** for shorter Karoo data fields, with aligned time-window and AVG/MAX/NP columns.
 - **Bright zone palette** tuned for quick reading on the Karoo screen.
 
 ## Current Behaviour
@@ -34,18 +35,18 @@ AVG, MAX, and NP are also read from Karoo's own streams:
 - `MAX_POWER`
 - `NORMALIZED_POWER`
 
-The chart is smoothed only for drawing:
+The chart is tuned for readability without changing the live value:
 
-- `1 min`: 5-second buckets
-- `5 min`: 5-second buckets
-- `20 min`: 10-second buckets
-- `Full`: adaptive buckets based on ride length
+- power shape is lightly smoothed only within continuous runs of the same zone, keeping colour and height aligned
+- `1 min` remains detailed
+- `5 min`, `20 min`, and `Full` draw fewer visual slices so the graph is less jagged on the Karoo display
+- power graphs use a zero floor and a minimum 0-400W vertical scale to avoid exaggerating steady low-power riding
 
 The app folds pauses out of the graph's time axis, so the curve continues from where the ride resumed instead of drawing a long interpolated line across a pause.
 
 ## Install
 
-Download `karoo-power-graph-1.0.2-debug.apk` from the [Releases](../../releases) page.
+Download `karoo-power-graph-1.1-debug.apk` from the [Releases](../../releases) page.
 
 Karoo OS can use the included OTA manifest for future updates. For the first install, sideload the APK.
 
@@ -56,7 +57,7 @@ Karoo 3:
 Karoo 2 / ADB:
 
 ```bash
-adb install -r karoo-power-graph-1.0.2-debug.apk
+adb install -r karoo-power-graph-1.1-debug.apk
 ```
 
 Then open the Karoo ride-page editor, choose **Karoo Power Graph**, and add one of:
@@ -101,7 +102,7 @@ Build:
 Output:
 
 ```text
-app/build/outputs/apk/debug/karoo-power-graph-1.0.2-debug.apk
+app/build/outputs/apk/debug/karoo-power-graph-1.1-debug.apk
 ```
 
 Generate the OTA manifest:

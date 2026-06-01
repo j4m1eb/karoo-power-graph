@@ -3,6 +3,17 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [1.1] — 2026-06-01
+
+### Changed
+- Reworked chart rendering after on-device testing: replaced large bucketed blocks with lower-density visual slices so power keeps detail without the dense one-second comb effect.
+- Added zone-local smoothing for plotted shape so light smoothing does not blend across zone boundaries and make colours look wrong.
+- Power charts now use a zero floor with a minimum 0-400W vertical scale to reduce exaggerated peaks during steady riding.
+- Compact-height fields now use aligned column anchors for the time-window pill, AVG, and MAX/NP so HR, Power, and Power NP line up consistently.
+- HR and power icons now share the smaller white icon treatment.
+- Rounded clipping is applied to the rendered field bitmap so chart fills do not bleed outside Karoo's rounded field corners.
+- Increased the retained sample buffer to support long full-ride views.
+
 ## [1.0.2] — 2026-05-30
 
 ### Changed

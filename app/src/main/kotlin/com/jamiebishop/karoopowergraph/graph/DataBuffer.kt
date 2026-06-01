@@ -1,6 +1,6 @@
 package com.jamiebishop.karoopowergraph.graph
 
-class DataBuffer(private val capacitySeconds: Int = 7200) {
+class DataBuffer(private val capacitySeconds: Int = 43_200) {
 
     private val samples = ArrayDeque<Sample>()
 
