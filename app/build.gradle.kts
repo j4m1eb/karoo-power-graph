@@ -12,8 +12,8 @@ android {
         applicationId = "com.jamiebishop.karoopowergraph"
         minSdk = 23
         targetSdk = 34
-        versionCode = 13
-        versionName = "1.1"
+        versionCode = 14
+        versionName = "1.2"
     }
 
     buildTypes {

@@ -3,6 +3,15 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [1.2] — 2026-06-17
+
+### Changed
+- Graph drawing now uses stable, time-aligned buckets instead of stride-based downsampling, reducing visual jumps in column width and colour as the selected window scrolls.
+- `5 min`, `20 min`, and `Full` windows now keep consistent bucket positions while still splitting at zone changes so colour remains tied to the rider's current Karoo zones.
+
+### Added
+- Added a window-local `AVG` readout under the time-window pill while keeping the main right-side `AVG`, `MAX`, and `NP` values as Karoo's whole-ride stats.
+
 ## [1.1] — 2026-06-01
 
 ### Changed
