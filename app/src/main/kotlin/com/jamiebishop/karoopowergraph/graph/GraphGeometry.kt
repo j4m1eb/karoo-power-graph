@@ -50,7 +50,7 @@ object GraphGeometry {
         }
 
         val smoothed = smoothSamplesWithinZones(visible, smoothingMsFor(timeWindowSec))
-        val plotted = downsampleSamples(smoothed, maxPointsFor(timeWindowSec, widthPx))
+        val plotted = bucketSamplesForDrawing(smoothed, drawingBucketMsFor(timeWindowSec, windowMs))
 
         if (plotted.size < 2) {
             val v = plotted.firstOrNull()?.value ?: 0f
@@ -110,13 +110,13 @@ object GraphGeometry {
             else -> 5_000L
         }
 
-    private fun maxPointsFor(timeWindowSec: Int?, widthPx: Int): Int =
+    private fun drawingBucketMsFor(timeWindowSec: Int?, windowMs: Long): Long =
         when (timeWindowSec) {
-            60 -> Int.MAX_VALUE
-            300 -> (widthPx / 3).coerceIn(100, 220)
-            1200 -> widthPx.coerceIn(240, 520)
-            null -> widthPx.coerceIn(240, 520)
-            else -> Int.MAX_VALUE
+            60 -> 1_000L
+            300 -> 2_000L
+            1200 -> 5_000L
+            null -> maxOf(5_000L, windowMs / 480L)
+            else -> 1_000L
         }
 
     private fun smoothSamplesWithinZones(samples: List<Sample>, smoothingMs: Long): List<Sample> {
@@ -158,18 +158,52 @@ object GraphGeometry {
         }
     }
 
-    private fun downsampleSamples(samples: List<Sample>, maxPoints: Int): List<Sample> {
-        if (samples.size <= maxPoints) return samples
-        val result = ArrayList<Sample>(maxPoints)
-        val stride = ((samples.size - 1).toDouble() / (maxPoints - 1).toDouble()).coerceAtLeast(1.0)
-        var next = 0.0
-        while (next < samples.lastIndex) {
-            result.add(samples[next.toInt()])
-            next += stride
+    private fun bucketSamplesForDrawing(samples: List<Sample>, bucketMs: Long): List<Sample> {
+        if (samples.size < 3 || bucketMs <= 1_000L) return samples
+
+        val result = ArrayList<Sample>()
+        var groupStart = 0
+        var groupBucket = bucketKey(samples.first().timestampMs, bucketMs)
+        var groupZone = samples.first().zone
+        var timestampSum = 0L
+        var valueSum = 0.0
+        var count = 0
+
+        fun flush() {
+            if (count == 0) return
+            if (count == 1) {
+                result.add(samples[groupStart])
+            } else {
+                result.add(
+                    Sample(
+                        timestampMs = timestampSum / count,
+                        value = (valueSum / count).toFloat(),
+                        zone = groupZone,
+                    ),
+                )
+            }
         }
-        if (result.lastOrNull() != samples.last()) {
-            result.add(samples.last())
+
+        for (i in samples.indices) {
+            val sample = samples[i]
+            val bucket = bucketKey(sample.timestampMs, bucketMs)
+            if (count > 0 && (bucket != groupBucket || sample.zone != groupZone)) {
+                flush()
+                groupStart = i
+                groupBucket = bucket
+                groupZone = sample.zone
+                timestampSum = 0L
+                valueSum = 0.0
+                count = 0
+            }
+            timestampSum += sample.timestampMs
+            valueSum += sample.value
+            count += 1
         }
+        flush()
         return result
     }
+
+    private fun bucketKey(timestampMs: Long, bucketMs: Long): Long =
+        Math.floorDiv(timestampMs, bucketMs)
 }

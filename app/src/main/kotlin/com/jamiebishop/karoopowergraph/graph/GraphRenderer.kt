@@ -31,6 +31,7 @@ object GraphRenderer {
         kind: Kind,
         isDark: Boolean,
         windowLabel: String? = null,
+        windowAvg: Int? = null,
         maxLabel: String = "MAX",
         reuse: Bitmap? = null,
     ): Bitmap {
@@ -84,6 +85,12 @@ object GraphRenderer {
             style = Paint.Style.STROKE
             strokeWidth = maxOf(1f, h * 0.008f)
         }
+        val windowStatPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = textColor
+            typeface = KAROO_TYPEFACE
+            textSize = statTextSize
+            style = Paint.Style.FILL
+        }
 
         val currentText = samples.lastOrNull()?.value?.toInt()?.toString().orEmpty()
         val avgText = "AVG $avg"
@@ -100,6 +107,7 @@ object GraphRenderer {
                 statPaint.textSize *= statAllowed / widestStat
             }
         }
+        windowStatPaint.textSize = statPaint.textSize * 0.93f
 
         val avgBounds = Rect().also { statPaint.getTextBounds(avgText, 0, avgText.length, it) }
         val maxBounds = Rect().also { statPaint.getTextBounds(maxText, 0, maxText.length, it) }
@@ -175,6 +183,7 @@ object GraphRenderer {
         }
 
         val compactWindowLabel = windowLabel?.compactWindowLabel()
+        var windowBottom = 0f
         if (!compactWindowLabel.isNullOrEmpty()) {
             val leftColRight = valueTextX + valueWidth
             val centerLeft = if (compactHeight) {
@@ -210,12 +219,30 @@ object GraphRenderer {
                     val wx = tagRect.left + tagPadX
                     val wy = tagRect.top + tagPadY + windowBounds.height()
                     canvas.drawText(compactWindowLabel, wx, wy, windowPaint)
+                    windowBottom = tagRect.bottom
+
+                    if (windowAvg != null) {
+                        val windowStatText = "AVG $windowAvg"
+                        val statAvailable = available * 1.45f
+                        var statWidth = windowStatPaint.measureText(windowStatText)
+                        if (statWidth > statAvailable && statAvailable > 0f) {
+                            windowStatPaint.textSize *= statAvailable / statWidth
+                            statWidth = windowStatPaint.measureText(windowStatText)
+                        }
+                        val statBounds = Rect().also {
+                            windowStatPaint.getTextBounds(windowStatText, 0, windowStatText.length, it)
+                        }
+                        val statX = centerLeft + (available - statWidth) / 2f
+                        val statY = tagRect.bottom + padPx * 0.45f + statBounds.height()
+                        canvas.drawText(windowStatText, statX, statY, windowStatPaint)
+                        windowBottom = statY + statBounds.bottom.coerceAtLeast(0)
+                    }
                 }
             }
         }
 
         val leftBottom = padPx + valueHeight
-        val curveTop = maxOf(leftBottom, rightBottom) + padPx * 0.5f
+        val curveTop = maxOf(leftBottom, rightBottom, windowBottom) + padPx * 0.5f
         val curveH = (h - curveTop).coerceAtLeast(1f)
 
         val frame = GraphGeometry.compute(

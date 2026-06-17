@@ -164,6 +164,7 @@ abstract class BaseGraphDataType(
         nowMs: Long,
     ): RemoteViews {
         val (w, h) = config.viewSize
+        val windowAvg = windowAverage(samples, window, nowMs)
         val isDark = (context.resources.configuration.uiMode
             and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         // Pool bitmaps for the live field only; the one-shot preview is not pooled.
@@ -184,6 +185,7 @@ abstract class BaseGraphDataType(
             kind = kind,
             isDark = isDark,
             windowLabel = window.label,
+            windowAvg = windowAvg,
             maxLabel = maxLabel,
             reuse = reuse,
         )
@@ -196,6 +198,20 @@ abstract class BaseGraphDataType(
             rv.setOnClickPendingIntent(R.id.graph, togglePendingIntent(context))
         }
         return rv
+    }
+
+    private fun windowAverage(samples: List<Sample>, window: TimeWindow, nowMs: Long): Int {
+        val visible = if (window.seconds == null) {
+            samples
+        } else {
+            val windowStart = nowMs - window.seconds * 1000L
+            samples.filter { it.timestampMs >= windowStart }
+        }
+        return if (visible.isEmpty()) {
+            0
+        } else {
+            (visible.sumOf { it.value.toDouble() } / visible.size).toInt()
+        }
     }
 
     private fun togglePendingIntent(context: Context): PendingIntent {

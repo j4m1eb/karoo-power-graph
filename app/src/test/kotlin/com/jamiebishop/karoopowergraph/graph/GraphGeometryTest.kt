@@ -115,12 +115,21 @@ class GraphGeometryTest {
     }
 
     @Test
-    fun fullWindowDownsamplesLongRidesWithoutCollapsingIntoHugeBuckets() {
+    fun fullWindowUsesStableSmallDrawingBuckets() {
         val samples = (0..10_800).map { second ->
             Sample(second * 1000L, 100f + (second % 60), 2)
         }
         val frame = GraphGeometry.compute(samples, 480, 100, null, 10_800_000L)
-        assertTrue(frame.segments.size in 240..520)
+        assertTrue(frame.segments.size in 430..520)
+    }
+
+    @Test
+    fun fiveMinuteWindowUsesTwoSecondDrawingBuckets() {
+        val samples = (0..300).map { second ->
+            Sample(second * 1000L, 100f + (second % 20), 2)
+        }
+        val frame = GraphGeometry.compute(samples, 480, 100, 300, 300_000L)
+        assertTrue(frame.segments.size in 145..155)
     }
 
     @Test
