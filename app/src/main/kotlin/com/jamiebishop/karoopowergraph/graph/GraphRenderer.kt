@@ -14,8 +14,6 @@ object GraphRenderer {
     private const val LINE_WIDTH_PX = 2.5f
     private const val FILL_ALPHA = 0xFF
     private const val FILL_OVERLAP_PX = 1.0f
-    private val HR_ICON = Color.WHITE
-    private val POWER_ICON = Color.WHITE
     private val KAROO_TYPEFACE: Typeface = Typeface.MONOSPACE
 
     enum class Kind { HR, POWER }
@@ -62,11 +60,7 @@ object GraphRenderer {
         } else {
             h * 0.132f
         }
-        val windowTextSize = if (compactHeight) {
-            maxOf(h * 0.130f, 22f)
-        } else {
-            h * 0.082f
-        }
+        val windowTextSize = statTextSize
 
         val statPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
@@ -75,15 +69,10 @@ object GraphRenderer {
             style = Paint.Style.FILL
         }
         val windowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            typeface = KAROO_TYPEFACE
+            color = textColor
+            typeface = Typeface.create(KAROO_TYPEFACE, Typeface.BOLD)
             textSize = windowTextSize
             style = Paint.Style.FILL
-        }
-        val windowStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#6B7280")
-            style = Paint.Style.STROKE
-            strokeWidth = maxOf(1f, h * 0.008f)
         }
         val windowStatPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
@@ -107,7 +96,8 @@ object GraphRenderer {
                 statPaint.textSize *= statAllowed / widestStat
             }
         }
-        windowStatPaint.textSize = statPaint.textSize * 0.93f
+        windowStatPaint.textSize = statPaint.textSize
+        windowPaint.textSize = statPaint.textSize
 
         val avgBounds = Rect().also { statPaint.getTextBounds(avgText, 0, avgText.length, it) }
         val maxBounds = Rect().also { statPaint.getTextBounds(maxText, 0, maxText.length, it) }
@@ -155,7 +145,7 @@ object GraphRenderer {
 
         val iconX = padPx * 0.65f
         val iconTopAlign = padPx + (valueHeight - iconSize) / 2f
-        drawIcon(canvas, kind, iconX, iconTopAlign, iconSize)
+        drawIcon(canvas, kind, iconX, iconTopAlign, iconSize, textColor)
 
         val valueTextX = iconX + iconSize + valueGap(kind, padPx)
         val valueBaseline = padPx + valueHeight
@@ -163,7 +153,8 @@ object GraphRenderer {
             canvas.drawText(currentText, valueTextX, valueBaseline, valuePaint)
         }
 
-        val avgBaseline = padPx + avgBounds.height()
+        val firstRowLift = if (compactHeight) 0f else maxOf(1f, h * 0.006f)
+        val avgBaseline = padPx + avgBounds.height() - firstRowLift
         val statLineStep = maxOf(avgBounds.height(), maxBounds.height()) * 1.2f
         val maxBaseline: Float
         val rightBottom: Float
@@ -207,19 +198,14 @@ object GraphRenderer {
                     val windowBounds = Rect().also {
                         windowPaint.getTextBounds(compactWindowLabel, 0, compactWindowLabel.length, it)
                     }
-                    val tagPadX = padPx * if (compactHeight) 0.85f else 0.65f
-                    val tagPadY = padPx * if (compactHeight) 0.40f else 0.28f
-                    val tagW = labelWidth + tagPadX * 2f
-                    val tagH = windowBounds.height() + tagPadY * 2f
-                    val tagLeft = centerLeft + (available - tagW) / 2f
-                    val tagTop = padPx + h * 0.015f
-                    val tagRect = RectF(tagLeft, tagTop, tagLeft + tagW, tagTop + tagH)
-                    val radius = tagH * 0.35f
-                    canvas.drawRoundRect(tagRect, radius, radius, windowStrokePaint)
-                    val wx = tagRect.left + tagPadX
-                    val wy = tagRect.top + tagPadY + windowBounds.height()
+                    val wx = centerLeft + (available - labelWidth) / 2f
+                    val wy = if (compactHeight) {
+                        padPx + h * 0.035f + windowBounds.height()
+                    } else {
+                        avgBaseline
+                    }
                     canvas.drawText(compactWindowLabel, wx, wy, windowPaint)
-                    windowBottom = tagRect.bottom
+                    windowBottom = wy + windowBounds.bottom.coerceAtLeast(0)
 
                     if (windowAvg != null) {
                         val windowStatText = "AVG $windowAvg"
@@ -233,7 +219,11 @@ object GraphRenderer {
                             windowStatPaint.getTextBounds(windowStatText, 0, windowStatText.length, it)
                         }
                         val statX = centerLeft + (available - statWidth) / 2f
-                        val statY = tagRect.bottom + padPx * 0.45f + statBounds.height()
+                        val statY = if (compactHeight) {
+                            windowBottom + padPx * 0.45f + statBounds.height()
+                        } else {
+                            maxBaseline
+                        }
                         canvas.drawText(windowStatText, statX, statY, windowStatPaint)
                         windowBottom = statY + statBounds.bottom.coerceAtLeast(0)
                     }
@@ -288,10 +278,10 @@ object GraphRenderer {
         return bmp
     }
 
-    private fun drawIcon(canvas: Canvas, kind: Kind, x: Float, y: Float, s: Float) {
+    private fun drawIcon(canvas: Canvas, kind: Kind, x: Float, y: Float, s: Float, color: Int) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
-            color = if (kind == Kind.HR) HR_ICON else POWER_ICON
+            this.color = color
         }
         val p = Path()
         when (kind) {

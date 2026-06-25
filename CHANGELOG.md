@@ -3,6 +3,16 @@
 All notable changes to this extension are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses semantic versioning.
 
+## [1.3] — 2026-06-25
+
+### Fixed
+- Power and HR icons now follow the field text colour, so they remain visible in both light and dark Karoo themes.
+- The time-window label now follows the field text colour in light mode.
+
+### Changed
+- Removed the outline pill around the time-window label for cleaner light-mode readability.
+- Time-window label, window AVG, ride AVG, and NP/MAX now share matching text size and row alignment; only the time-window label is bold.
+
 ## [1.2] — 2026-06-17
 
 ### Changed
